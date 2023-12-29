@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evaluador de Expresiones Aritméticas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Evaluador de Expresiones Aritméticas</h1>
+    <label for="expresion">Ingrese la expresión:</label>
+    <input type="text" id="expresion" placeholder="Ejemplo: 2 + 3 * (4 - 1)">
+    <button onclick="evaluarExpresion()">Evaluar</button>
+    <p id="resultado"></p>
+
+    <script>
+        function evaluarExpresion() {
+            var expresionInput = document.getElementById("expresion");
+            var resultadoElement = document.getElementById("resultado");
+
+            try {
+                var expresion = expresionInput.value;
+
+                // Validar tipos de datos y prioridad de operadores
+                var operadores = ['+', '-', '*', '/'];
+                for (var i = 0; i < operadores.length; i++) {
+                    var operador = operadores[i];
+                    expresion = expresion.replace(new RegExp('\\' + operador, 'g'), ' ' + operador + ' ');
+                }
+
+                var tokens = expresion.split(/\s+/).filter(Boolean);
+                var prioridades = {'+': 1, '-': 1, '*': 2, '/': 2};
+
+                // Algoritmo Shunting Yard para evaluar la expresión
+                var outputQueue = [];
+                var operatorStack = [];
+
+                for (var j = 0; j < tokens.length; j++) {
+                    var token = tokens[j];
+
+                    if (!isNaN(parseFloat(token))) {
+                        outputQueue.push(parseFloat(token));
+                    } else if (operadores.includes(token)) {
+                        while (operatorStack.length > 0 && prioridades[operatorStack[operatorStack.length - 1]] >= prioridades[token]) {
+                            outputQueue.push(operatorStack.pop());
+                        }
+                        operatorStack.push(token);
+                    }
+                }
+
+                while (operatorStack.length > 0) {
+                    outputQueue.push(operatorStack.pop());
+                }
+
+                // Evaluar la expresión final
+                var resultStack = [];
+                for (var k = 0; k < outputQueue.length; k++) {
+                    var token = outputQueue[k];
+                    if (!isNaN(parseFloat(token))) {
+                        resultStack.push(token);
+                    } else {
+                        var b = resultStack.pop();
+                        var a = resultStack.pop();
+                        switch (token) {
+                            case '+':
+                                resultStack.push(a + b);
+                                break;
+                            case '-':
+                                resultStack.push(a - b);
+                                break;
+                            case '*':
+                                resultStack.push(a * b);
+                                break;
+                            case '/':
+                                resultStack.push(a / b);
+                                break;
+                        }
+                    }
+                }
+
+                var resultado = resultStack.pop();
+                resultadoElement.innerText = "Resultado: " + resultado;
+            } catch (error) {
+                resultadoElement.innerText = "Error: " + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
